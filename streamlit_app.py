@@ -71,7 +71,7 @@ phylum_abundance_per_sample = phylum_abundance_per_sample.merge(df_meta, on="sam
 
 
 # interactive compound pca with 2 histograms
-def draw_pca(dt=df_full, ids_otu, phylum_abundance_per_sample):
+def draw_pca(dt, ids_otu, phylum_abundance_per_sample):
     pca_3d_model = PCA(n_components=3)
     pca_3d = pca_3d_model.fit_transform(dt[ids_otu])
 
@@ -113,4 +113,4 @@ def draw_pca(dt=df_full, ids_otu, phylum_abundance_per_sample):
 
 ### run app code
 
-st.write(draw_pca(dt=df_full, ids_otu, phylum_abundance_per_sample))
+st.write(draw_pca(dt=df_full, ids_otu=ids_otu, phylum_abundance_per_sample=phylum_abundance_per_sample))
