@@ -45,7 +45,6 @@ df_16s_abu_transposed.columns.rename("OTU_ID", inplace=True)
 
 df_16s_abu_transposed = df_16s_abu_transposed.apply(pd.to_numeric) # convert all columns to integer
 
-df_16s_abu_transposed
 
 df_full = df_meta.merge(df_16s_abu_transposed, how="inner", left_on="sample_id", right_on=df_16s_abu_transposed.index)
 
@@ -65,23 +64,22 @@ df_long_full = df_long_full.merge(taxonomy, how="left", on="OTU_ID")
 phylum_abundance_per_sample = df_long_full.groupby(["sample_id", "phylum"])["OTU_Abundance"].sum()
 phylum_abundance_per_sample = pd.DataFrame(phylum_abundance_per_sample).reset_index()
 phylum_abundance_per_sample = phylum_abundance_per_sample.merge(df_meta, on="sample_id", how="left")
-phylum_abundance_per_sample
 
 
 # compute pca
 
-pca_3d_model = PCA(n_components=3)
-pca_3d = pca_3d_model.fit_transform(df_full[ids_otu])
 
-# append PCA coordinates to data frame as separate columns
-df_full[["pca1", "pca2", "pca3"]] = pca_3d
-df_full.head()
 
 # interactive compound pca with 2 histograms
-def draw_pca():
+def draw_pca(dt=df_full, ids_otu, phylum_abundance_per_sample):
+    pca_3d_model = PCA(n_components=3)
+    pca_3d = pca_3d_model.fit_transform(dt[ids_otu])
+
+    # append PCA coordinates to data frame as separate columns
+    dt[["pca1", "pca2", "pca3"]] = pca_3d
     interval = alt.selection_interval()
     
-    scatter_base = alt.Chart(df_full).mark_point().encode(
+    scatter_base = alt.Chart(dt).mark_point().encode(
         x=alt.X('pca1', title='PCA #1'),
         color=alt.condition(interval, 'stage:N', alt.value('lightgray')),
         tooltip=['sample_id']
@@ -93,14 +91,12 @@ def draw_pca():
     
     histo =alt.Chart(phylum_abundance_per_sample).mark_bar().encode(
         y='stage:N',
-        x=alt.X('sum(OTU_Abundance)', stack='normalize'),#'mean(OTU_Abundance):Q', #    x=alt.X('mean(OTU_Abundance)', stack='zero'),
-
+        x=alt.X('sum(OTU_Abundance)', stack='normalize'),
         color='phylum:N',
-        tooltip=['phylum:N', alt.Tooltip('sum(OTU_Abundance):Q', format=',.1f')],
-        #tooltip=['mean(OTU_Abundance):Q', 'phylum:N'],
+        tooltip=['phylum:N', alt.Tooltip('sum(OTU_Abundance):Q', format=',.1f')]
     ).transform_lookup(
         lookup='sample_id',
-        from_=alt.LookupData(data=df_full, key='sample_id',
+        from_=alt.LookupData(data=dt, key='sample_id',
         fields=['pca1', 'pca2'])
     ).transform_filter(interval)
 
@@ -117,4 +113,4 @@ def draw_pca():
 
 ### run app code
 
-st.write(draw_pca())
+st.write(draw_pca(dt=df_full, ids_otu, phylum_abundance_per_sample))
