@@ -1,0 +1,7 @@
+altair==4.2.0
+openpyxl==3.0.9
+xlrd==2.0.1
+scikit-learn
+pandas
+numpy
+streamlit
